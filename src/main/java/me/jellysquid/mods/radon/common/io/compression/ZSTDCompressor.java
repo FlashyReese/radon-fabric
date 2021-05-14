@@ -7,7 +7,6 @@ import java.nio.ByteBuffer;
 public class ZSTDCompressor implements StreamCompressor {
     @Override
     public ByteBuffer compress(ByteBuffer src) {
-        assert me.jellysquid.mods.radon.common.natives.Zstd.ZSTD_compressBound(src.remaining()) == Zstd.ZSTD_compressBound(src.remaining());
         ByteBuffer dst = ByteBuffer.allocateDirect(me.jellysquid.mods.radon.common.natives.Zstd.ZSTD_compressBound(src.remaining()));
         dst.limit((int) checkError(me.jellysquid.mods.radon.common.natives.Zstd.ZSTD_compress(dst, src, 7)));
 

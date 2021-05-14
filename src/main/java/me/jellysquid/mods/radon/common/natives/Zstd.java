@@ -1,27 +1,23 @@
 package me.jellysquid.mods.radon.common.natives;
 
-import jdk.incubator.foreign.CLinker;
-import jdk.incubator.foreign.FunctionDescriptor;
-import jdk.incubator.foreign.MemoryAddress;
 import jdk.incubator.foreign.MemorySegment;
 import org.jetbrains.annotations.Range;
 
 import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodType;
 import java.nio.ByteBuffer;
 
 public class Zstd {
     private static final MethodHandle ZSTD_compressBound = NativeUtil.getHandle(
             NativeUtil.LibZSTD,
             "ZSTD_compressBound",
-            MethodType.methodType(int.class, int.class),
-            FunctionDescriptor.of(CLinker.C_INT, CLinker.C_INT)
+            Type.UINT,
+            Type.UINT
     );
     private static final MethodHandle ZSTD_compress = NativeUtil.getHandle(
             NativeUtil.LibZSTD,
             "ZSTD_compress",
-            MethodType.methodType(int.class, MemoryAddress.class, int.class, MemoryAddress.class, int.class, int.class),
-            FunctionDescriptor.of(CLinker.C_INT, CLinker.C_POINTER, CLinker.C_INT, CLinker.C_POINTER, CLinker.C_INT, CLinker.C_INT)
+            Type.UINT,
+            Type.POINTER, Type.UINT, Type.POINTER, Type.UINT, Type.UINT
     );
 
     public static int ZSTD_compressBound(@Range(from = 0, to = Integer.MAX_VALUE) int maxSrc) {
