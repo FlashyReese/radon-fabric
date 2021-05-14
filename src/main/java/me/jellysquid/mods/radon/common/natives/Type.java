@@ -5,6 +5,7 @@ import jdk.incubator.foreign.MemoryAddress;
 import jdk.incubator.foreign.MemoryLayout;
 
 public enum Type {
+    LONG(long.class, CLinker.C_LONG_LONG),
     UINT(int.class, CLinker.C_INT),
     POINTER(MemoryAddress.class, CLinker.C_POINTER);
 

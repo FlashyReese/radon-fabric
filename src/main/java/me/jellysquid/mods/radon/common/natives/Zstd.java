@@ -20,6 +20,18 @@ public class Zstd {
             Type.UINT,
             Type.POINTER, Type.UINT, Type.POINTER, Type.UINT, Type.UINT
     );
+    private static final MethodHandle ZSTD_decompress = NativeUtil.getHandle(
+            NativeUtil.LibZSTD,
+            "ZSTD_decompress",
+            Type.UINT,
+            Type.POINTER, Type.UINT, Type.POINTER, Type.UINT
+    );
+    private static final MethodHandle ZSTD_getFrameContentSize = NativeUtil.getHandle(
+            NativeUtil.LibZSTD,
+            "ZSTD_getFrameContentSize",
+            Type.LONG,
+            Type.POINTER, Type.UINT
+    );
     private static final MethodHandle ZSTD_isError = NativeUtil.getHandle(
             NativeUtil.LibZSTD,
             "ZSTD_isError",
@@ -52,6 +64,35 @@ public class Zstd {
                     srcSegment.address(),
                     (int)srcSegment.byteSize(),
                     level
+            );
+        } catch (Throwable t) {
+            throw new RuntimeException("Exception in Zstd", t);
+        }
+    }
+
+    public static int ZSTD_decompress(ByteBuffer dst, ByteBuffer src) {
+        try {
+            var dstSegment = MemorySegment.ofByteBuffer(dst);
+            var srcSegment = MemorySegment.ofByteBuffer(src);
+
+            return (int)ZSTD_decompress.invokeExact(
+                    dstSegment.address(),
+                    (int)dstSegment.byteSize(),
+                    srcSegment.address(),
+                    (int)srcSegment.byteSize()
+            );
+        } catch (Throwable t) {
+            throw new RuntimeException("Exception in Zstd", t);
+        }
+    }
+
+    public static long ZSTD_getFrameContentSize(ByteBuffer src) {
+        try {
+            var srcSegment = MemorySegment.ofByteBuffer(src);
+
+            return (long)ZSTD_getFrameContentSize.invokeExact(
+                    srcSegment.address(),
+                    (int)srcSegment.byteSize()
             );
         } catch (Throwable t) {
             throw new RuntimeException("Exception in Zstd", t);
