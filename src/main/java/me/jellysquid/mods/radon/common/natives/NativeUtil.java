@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 public class NativeUtil {
     protected static final LibraryLookup LibZSTD;
+    protected static final LibraryLookup LibLMDB;
 
     protected static MethodHandle getHandle(LibraryLookup library, String method, Type returnType, Type... args) {
         var linker = CLinker.getInstance();
@@ -54,5 +55,6 @@ public class NativeUtil {
 
     static {
         LibZSTD = LibraryLookup.ofLibrary("zstd");
+        LibLMDB = LibraryLookup.ofLibrary("lmdb");
     }
 }
