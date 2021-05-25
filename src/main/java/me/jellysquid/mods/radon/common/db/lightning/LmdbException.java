@@ -1,6 +1,7 @@
 package me.jellysquid.mods.radon.common.db.lightning;
 
-import org.lwjgl.util.lmdb.LMDB;
+
+import me.jellysquid.mods.radon.common.natives.Lmdb;
 
 public class LmdbException extends RuntimeException {
     private final int code;
@@ -15,6 +16,6 @@ public class LmdbException extends RuntimeException {
 
     @Override
     public String getMessage() {
-        return LMDB.mdb_strerror(this.code);
+        return Lmdb.mdb_strerror(this.code);
     }
 }

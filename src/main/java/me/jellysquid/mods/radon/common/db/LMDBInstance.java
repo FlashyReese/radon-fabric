@@ -7,9 +7,9 @@ import me.jellysquid.mods.radon.common.db.lightning.EnvInfo;
 import me.jellysquid.mods.radon.common.db.lightning.LmdbException;
 import me.jellysquid.mods.radon.common.db.lightning.Txn;
 import me.jellysquid.mods.radon.common.db.spec.DatabaseSpec;
+import me.jellysquid.mods.radon.common.natives.Lmdb;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.lwjgl.util.lmdb.LMDB;
 
 import java.io.File;
 import java.util.Arrays;
@@ -35,7 +35,7 @@ public class LMDBInstance {
 
         this.env = Env.builder()
                 .setMaxDatabases(databases.length)
-                .open(file, LMDB.MDB_NOLOCK | LMDB.MDB_NOSUBDIR);
+                .open(file, Lmdb.MDB_NOLOCK | Lmdb.MDB_NOSUBDIR);
 
         EnvInfo info = this.env.getInfo();
 
@@ -99,7 +99,7 @@ public class LMDBInstance {
                     KVTransaction<?, ?> transaction = it.next();
                     transaction.addChanges(txn);
                 } catch (LmdbException e) {
-                    if (e.getCode() == LMDB.MDB_MAP_FULL) {
+                    if (e.getCode() == Lmdb.MDB_MAP_FULL) {
                         LOGGER.warn("Map became full during commit; Requesting " +
                                 "another {} bytes and restarting transaction", MAP_RESIZE_STEP);
 

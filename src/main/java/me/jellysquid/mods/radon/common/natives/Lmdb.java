@@ -7,6 +7,56 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.VarHandle;
 
 public class Lmdb {
+    // mdb_env      Environment Flags
+    public static final int MDB_FIXEDMAP        = 0x01;
+    public static final int MDB_NOSUBDIR        = 0x4000;
+    public static final int MDB_NOSYNC          = 0x10000;
+    public static final int MDB_RDONLY          = 0x20000;
+    public static final int MDB_NOMETASYNC      = 0x40000;
+    public static final int MDB_WRITEMAP        = 0x80000;
+    public static final int MDB_MAPASYNC        = 0x100000;
+    public static final int MDB_NOTLS           = 0x200000;
+    public static final int MDB_NOLOCK          = 0x400000;
+    public static final int MDB_NORDAHEAD       = 0x800000;
+    public static final int MDB_NOMEMINIT       = 0x1000000;
+    public static final int MDB_PREVSNAPSHOT    = 0x2000000;
+
+
+    // mdb_dbi_open Database Flags
+    public static final int MDB_REVERSEKEY  = 0x02;
+    public static final int MDB_DUPSORT     = 0x04;
+    public static final int MDB_INTEGERKEY  = 0x08;
+    public static final int MDB_DUPFIXED    = 0x10;
+    public static final int MDB_INTEGERDUP  = 0x20;
+    public static final int MDB_REVERSEDUP  = 0x40;
+    public static final int MDB_CREATE      = 0x40000;
+
+    // ERRORS
+    public static final int MDB_SUCCESS	            = 0;
+    public static final int MDB_KEYEXIST            = -30799;
+    public static final int MDB_NOTFOUND            = -30798;
+    public static final int MDB_PAGE_NOTFOUND       = -30797;
+    public static final int MDB_CORRUPTED           = -30796;
+    public static final int MDB_PANIC               = -30795;
+    public static final int MDB_VERSION_MISMATCH    = -30794;
+    public static final int MDB_INVALID             = -30793;
+    public static final int MDB_MAP_FULL            = -30792;
+    public static final int MDB_DBS_FULL            = -30791;
+    public static final int MDB_READERS_FULL        = -30790;
+    public static final int MDB_TLS_FULL            = -30789;
+    public static final int MDB_TXN_FULL            = -30788;
+    public static final int MDB_CURSOR_FULL         = -30787;
+    public static final int MDB_PAGE_FULL           = -30786;
+    public static final int MDB_MAP_RESIZED         = -30785;
+    public static final int MDB_INCOMPATIBLE        = -30784;
+    public static final int MDB_BAD_RSLOT           = -30783;
+    public static final int MDB_BAD_TXN	            = -30782;
+    public static final int MDB_BAD_VALSIZE	        = -30781;
+    public static final int MDB_BAD_DBI             = -30780;
+    public static final int MDB_PROBLEM             = -30779;
+    public static final int MDB_LAST_ERRCODE        = MDB_PROBLEM;
+
+
     private static final MethodHandle mdb_dbi_open = NativeUtil.getHandle(
             NativeUtil.LibLMDB,
             "mdb_dbi_open",
@@ -84,6 +134,12 @@ public class Lmdb {
             "mdb_dbi_close",
             Type.UINT,
             Type.POINTER, Type.UINT
+    );
+    private static final MethodHandle mdb_strerror = NativeUtil.getHandle(
+            NativeUtil.LibLMDB,
+            "mdb_strerror",
+            Type.POINTER,
+            Type.UINT
     );
 
     public static int mdb_dbi_open(MemoryAddress txn, CString name, int flags, NativeUtil.IntBuf dbi) {
@@ -196,6 +252,15 @@ public class Lmdb {
     public static int mdb_dbi_close(MemoryAddress env, int dbi) {
         try {
             return (int)mdb_dbi_close.invokeExact(env, dbi);
+        } catch (Throwable t) {
+            throw new RuntimeException("Exception in lmdb", t);
+        }
+    }
+
+    public static String mdb_strerror(int err) {
+        try {
+            var pointer = (MemoryAddress)mdb_strerror.invokeExact(err);
+            return NativeUtil.pointerToString(pointer);
         } catch (Throwable t) {
             throw new RuntimeException("Exception in lmdb", t);
         }

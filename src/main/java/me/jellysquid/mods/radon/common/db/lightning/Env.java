@@ -4,7 +4,6 @@ import jdk.incubator.foreign.MemoryAddress;
 import me.jellysquid.mods.radon.common.natives.CString;
 import me.jellysquid.mods.radon.common.natives.Lmdb;
 import me.jellysquid.mods.radon.common.natives.NativeUtil;
-import org.lwjgl.util.lmdb.LMDB;
 
 import java.io.File;
 
@@ -47,7 +46,7 @@ public class Env {
     }
 
     public Txn txnRead() {
-        return this.txn(LMDB.MDB_RDONLY);
+        return this.txn(Lmdb.MDB_RDONLY);
     }
 
     private Txn txn(int flags) {

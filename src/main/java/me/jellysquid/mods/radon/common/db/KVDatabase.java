@@ -9,7 +9,7 @@ import me.jellysquid.mods.radon.common.db.serializer.KeySerializer;
 import me.jellysquid.mods.radon.common.db.serializer.ValueSerializer;
 import me.jellysquid.mods.radon.common.db.spec.DatabaseSpec;
 import me.jellysquid.mods.radon.common.io.compression.StreamCompressor;
-import org.lwjgl.util.lmdb.LMDB;
+import me.jellysquid.mods.radon.common.natives.Lmdb;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -28,7 +28,7 @@ public class KVDatabase<K, V> {
         this.storage = storage;
 
         this.env = this.storage.env();
-        this.dbi = this.env.openDbi(spec.getNameAsCString(), LMDB.MDB_CREATE);
+        this.dbi = this.env.openDbi(spec.getNameAsCString(), Lmdb.MDB_CREATE);
 
         this.keySerializer = DefaultSerializers.getKeySerializer(spec.getKeyType());
         this.valueSerializer = DefaultSerializers.getValueSerializer(spec.getValueType());

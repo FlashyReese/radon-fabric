@@ -3,7 +3,6 @@ package me.jellysquid.mods.radon.common.db.lightning;
 import jdk.incubator.foreign.MemoryAddress;
 import me.jellysquid.mods.radon.common.natives.Lmdb;
 import me.jellysquid.mods.radon.common.natives.NativeUtil;
-import org.lwjgl.util.lmdb.LMDB;
 
 public class LmdbUtil {
     public static <T> T transaction(Env env, Transaction<T> transaction) {
@@ -30,7 +29,7 @@ public class LmdbUtil {
     }
 
     public static void checkError(int rc) {
-        if (rc != LMDB.MDB_SUCCESS) {
+        if (rc != Lmdb.MDB_SUCCESS) {
             throw new LmdbException(rc);
         }
     }

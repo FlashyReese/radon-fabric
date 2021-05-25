@@ -2,7 +2,6 @@ package me.jellysquid.mods.radon.common.db.lightning;
 
 import jdk.incubator.foreign.MemorySegment;
 import me.jellysquid.mods.radon.common.natives.Lmdb;
-import org.lwjgl.util.lmdb.LMDB;
 
 public class Dbi {
     private final Env env;
@@ -34,7 +33,7 @@ public class Dbi {
 
             int result = Lmdb.mdb_get(txn, this.dbi, key, value);
 
-            if (result == LMDB.MDB_NOTFOUND) {
+            if (result == Lmdb.MDB_NOTFOUND) {
                 return null;
             }
 
