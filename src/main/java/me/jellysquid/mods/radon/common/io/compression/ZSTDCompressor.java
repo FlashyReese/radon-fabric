@@ -4,6 +4,8 @@ import jdk.incubator.foreign.MemorySegment;
 import me.jellysquid.mods.radon.common.natives.NativeUtil;
 import me.jellysquid.mods.radon.common.natives.Zstd;
 
+import java.nio.ByteBuffer;
+
 public class ZSTDCompressor implements StreamCompressor {
     @Override
     public MemorySegment compress(MemorySegment src) {
@@ -18,7 +20,12 @@ public class ZSTDCompressor implements StreamCompressor {
         long size = Zstd.ZSTD_getFrameContentSize(src);
         checkError((int)size);
 
-        MemorySegment dst = NativeUtil.allocateNative(size);
+        MemorySegment dst;
+        if (size == 0) {
+            dst = MemorySegment.ofByteBuffer(ByteBuffer.allocateDirect(0)); // You seemingly can't allocate a 0-sized buffer directly. Despite the javadoc saying you can.
+        } else {
+            dst = NativeUtil.allocateNative(size);
+        }
         checkError(Zstd.ZSTD_decompress(dst, src));
 
         return dst;
