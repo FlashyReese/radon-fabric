@@ -29,22 +29,6 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 }
 
-addLwjglBindings('lwjgl-zstd')
-addLwjglBindings('lwjgl-lmdb')
-
-def addLwjglBindings(name) {
-	def group = 'org.lwjgl'
-	def version = '3.2.2'
-
-	dependencies {
-		bindings(group: group, name: name, version: version) { transitive = false }
-
-		natives(group: group, name: name, version: version, classifier: 'natives-linux') { transitive = false }
-		natives(group: group, name: name, version: version, classifier: 'natives-macos') { transitive = false }
-		natives(group: group, name: name, version: version, classifier: 'natives-windows') { transitive = false }
-	}
-}
-
 processResources {
 	inputs.property "version", project.version
 
