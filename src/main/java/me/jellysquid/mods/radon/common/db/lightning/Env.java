@@ -1,50 +1,45 @@
 package me.jellysquid.mods.radon.common.db.lightning;
 
-import org.lwjgl.PointerBuffer;
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.MemoryUtil;
+import jdk.incubator.foreign.MemoryAddress;
+import me.jellysquid.mods.radon.common.natives.CString;
+import me.jellysquid.mods.radon.common.natives.Lmdb;
+import me.jellysquid.mods.radon.common.natives.NativeUtil;
 import org.lwjgl.util.lmdb.LMDB;
-import org.lwjgl.util.lmdb.MDBEnvInfo;
 
 import java.io.File;
-import java.nio.IntBuffer;
 
 public class Env {
-    private final long env;
+    private final MemoryAddress env;
 
-    Env(long env) {
+    Env(MemoryAddress env) {
         this.env = env;
     }
 
-    public Dbi openDbi(String name, int flags) {
+    public Dbi openDbi(CString name, int flags) {
         return LmdbUtil.transaction(this, (stack, txn) -> {
-            IntBuffer ib = stack.mallocInt(1);
-            LmdbUtil.checkError(LMDB.mdb_dbi_open(txn, name, flags, ib));
-
-            return new Dbi(this, ib.get(0));
+            var dbiHandle = new NativeUtil.IntBuf();
+            LmdbUtil.checkError(Lmdb.mdb_dbi_open(txn, name, flags, dbiHandle));
+            return new Dbi(this, dbiHandle.get());
         });
     }
 
     public static Builder builder() {
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            PointerBuffer pb = stack.mallocPointer(1);
-            LmdbUtil.checkError(LMDB.mdb_env_create(pb));
+        try (var pointer = new NativeUtil.PointerBuf()) {
+            LmdbUtil.checkError(Lmdb.mdb_env_create(pointer));
 
-            return new Env.Builder(pb.get(0));
+            return new Env.Builder(pointer.extract());
         }
     }
 
     public EnvInfo getInfo() {
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            MDBEnvInfo info = new MDBEnvInfo(stack.malloc(MDBEnvInfo.SIZEOF));
-            LmdbUtil.checkError(LMDB.mdb_env_info(this.env, info));
+        Lmdb.MDB_envinfo info = new Lmdb.MDB_envinfo();
+        LmdbUtil.checkError(Lmdb.mdb_env_info(this.env, info));
 
-            return new EnvInfo(info);
-        }
+        return new EnvInfo(info);
     }
 
     public void setMapSize(long size) {
-        LmdbUtil.checkError(LMDB.mdb_env_set_mapsize(this.env, size));
+        LmdbUtil.checkError(Lmdb.mdb_env_set_mapsize(this.env, size));
     }
 
     public Txn txnWrite() {
@@ -56,41 +51,40 @@ public class Env {
     }
 
     private Txn txn(int flags) {
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            PointerBuffer pb = stack.mallocPointer(1);
-            LmdbUtil.checkError(LMDB.mdb_txn_begin(this.env, MemoryUtil.NULL, flags, pb));
+        try (var txnPointer = new NativeUtil.PointerBuf()) {
+            LmdbUtil.checkError(Lmdb.mdb_txn_begin(this.env, MemoryAddress.NULL, flags, txnPointer));
 
-            return new Txn(pb.get(0));
+            return new Txn(txnPointer.extract());
         }
     }
 
     public void close() {
-        LMDB.mdb_env_close(this.env);
+        Lmdb.mdb_env_close(this.env);
     }
 
-    long raw() {
+    MemoryAddress address() {
         return this.env;
     }
 
     public static class Builder {
-        private final long pointer;
+        private final MemoryAddress pointer;
 
-        public Builder(long pointer) {
+        public Builder(MemoryAddress pointer) {
             this.pointer = pointer;
         }
 
         public Builder setMaxDatabases(int limit) {
-            LmdbUtil.checkError(LMDB.mdb_env_set_maxdbs(this.pointer, limit));
+            LmdbUtil.checkError(Lmdb.mdb_env_set_maxdbs(this.pointer, limit));
 
             return this;
         }
 
         public Env open(File file, int flags) {
-            return this.open(file.getAbsolutePath(), flags);
+            return this.open(new CString(file.getAbsolutePath()), flags);
         }
 
-        public Env open(String path, int flags) {
-            LmdbUtil.checkError(LMDB.mdb_env_open(this.pointer, path, flags, 0_664));
+        public Env open(CString path, int flags) {
+            LmdbUtil.checkError(Lmdb.mdb_env_open(this.pointer, path, flags, 0_664));
 
             return new Env(this.pointer);
         }

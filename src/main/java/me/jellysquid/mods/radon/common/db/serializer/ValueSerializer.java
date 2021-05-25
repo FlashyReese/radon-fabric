@@ -1,10 +1,11 @@
 package me.jellysquid.mods.radon.common.db.serializer;
 
+import jdk.incubator.foreign.MemorySegment;
+
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 public interface ValueSerializer<T> {
-    ByteBuffer serialize(T value) throws IOException;
+    MemorySegment serialize(T value) throws IOException;
 
-    T deserialize(ByteBuffer input) throws IOException;
+    T deserialize(MemorySegment input) throws IOException;
 }

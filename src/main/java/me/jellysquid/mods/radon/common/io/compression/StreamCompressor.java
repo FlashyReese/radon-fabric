@@ -1,9 +1,9 @@
 package me.jellysquid.mods.radon.common.io.compression;
 
-import java.nio.ByteBuffer;
+import jdk.incubator.foreign.MemorySegment;
 
 public interface StreamCompressor {
-    ByteBuffer compress(ByteBuffer in);
+    MemorySegment compress(MemorySegment in);
 
-    ByteBuffer decompress(ByteBuffer in);
+    MemorySegment decompress(MemorySegment in);
 }

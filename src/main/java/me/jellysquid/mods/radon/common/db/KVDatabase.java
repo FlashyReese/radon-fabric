@@ -1,17 +1,16 @@
 package me.jellysquid.mods.radon.common.db;
 
+import jdk.incubator.foreign.MemorySegment;
+import me.jellysquid.mods.radon.common.db.lightning.Dbi;
+import me.jellysquid.mods.radon.common.db.lightning.Env;
+import me.jellysquid.mods.radon.common.db.lightning.Txn;
 import me.jellysquid.mods.radon.common.db.serializer.DefaultSerializers;
 import me.jellysquid.mods.radon.common.db.serializer.KeySerializer;
 import me.jellysquid.mods.radon.common.db.serializer.ValueSerializer;
 import me.jellysquid.mods.radon.common.db.spec.DatabaseSpec;
 import me.jellysquid.mods.radon.common.io.compression.StreamCompressor;
-import me.jellysquid.mods.radon.common.db.lightning.Dbi;
-import me.jellysquid.mods.radon.common.db.lightning.Env;
-import me.jellysquid.mods.radon.common.db.lightning.Txn;
-import org.lwjgl.system.MemoryStack;
 import org.lwjgl.util.lmdb.LMDB;
 
-import java.nio.ByteBuffer;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class KVDatabase<K, V> {
@@ -29,7 +28,7 @@ public class KVDatabase<K, V> {
         this.storage = storage;
 
         this.env = this.storage.env();
-        this.dbi = this.env.openDbi(spec.getName(), LMDB.MDB_CREATE);
+        this.dbi = this.env.openDbi(spec.getNameAsCString(), LMDB.MDB_CREATE);
 
         this.keySerializer = DefaultSerializers.getKeySerializer(spec.getKeyType());
         this.valueSerializer = DefaultSerializers.getValueSerializer(spec.getValueType());
@@ -41,14 +40,14 @@ public class KVDatabase<K, V> {
         lock.readLock()
                 .lock();
 
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            ByteBuffer buf = this.dbi.get(this.env.txnRead(), this.getKeyBuffer(stack, key));
+        try {
+            var buf = this.dbi.get(this.env.txnRead(), this.getKeyBuffer(key));
 
             if (buf == null) {
                 return null;
             }
 
-            ByteBuffer decompressed;
+            MemorySegment decompressed;
 
             try {
                 decompressed = this.compressor.decompress(buf);
@@ -67,12 +66,8 @@ public class KVDatabase<K, V> {
         }
     }
 
-    private ByteBuffer getKeyBuffer(MemoryStack stack, K key) {
-        ByteBuffer buf = stack.malloc(this.keySerializer.getKeyLength());
-
-        this.keySerializer.serializeKey(buf, key);
-
-        return buf;
+    private MemorySegment getKeyBuffer(K key) {
+        return this.keySerializer.serializeKey(key);
     }
 
     public KeySerializer<K> getKeySerializer() {
@@ -87,10 +82,8 @@ public class KVDatabase<K, V> {
         return this.compressor;
     }
 
-    public void putValue(Txn txn, K key, ByteBuffer value) {
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            this.dbi.put(txn, this.getKeyBuffer(stack, key), value, 0);
-        }
+    public void putValue(Txn txn, K key, MemorySegment value) {
+        this.dbi.put(txn, this.getKeyBuffer(key), value, 0);
     }
 
     public void close() {

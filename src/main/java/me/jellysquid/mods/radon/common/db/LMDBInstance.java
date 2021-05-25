@@ -2,11 +2,11 @@ package me.jellysquid.mods.radon.common.db;
 
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
-import me.jellysquid.mods.radon.common.db.spec.DatabaseSpec;
 import me.jellysquid.mods.radon.common.db.lightning.Env;
 import me.jellysquid.mods.radon.common.db.lightning.EnvInfo;
 import me.jellysquid.mods.radon.common.db.lightning.LmdbException;
 import me.jellysquid.mods.radon.common.db.lightning.Txn;
+import me.jellysquid.mods.radon.common.db.spec.DatabaseSpec;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.util.lmdb.LMDB;
@@ -39,7 +39,7 @@ public class LMDBInstance {
 
         EnvInfo info = this.env.getInfo();
 
-        int initialSize = Arrays.stream(databases).mapToInt(DatabaseSpec::getInitialSize).sum();
+        long initialSize = Arrays.stream(databases).mapToInt(DatabaseSpec::getInitialSize).sum();
 
         if (info.mapSize < initialSize) {
             this.env.setMapSize(initialSize);
@@ -105,7 +105,7 @@ public class LMDBInstance {
 
                         txn.abort();
 
-                        this.growMap(MAP_RESIZE_STEP);
+                        this.growMap((int)MAP_RESIZE_STEP);
 
                         txn = this.env.txnWrite();
                         it = this.transactions.values()
