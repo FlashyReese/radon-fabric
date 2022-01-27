@@ -4,7 +4,7 @@ import com.mojang.datafixers.DataFixer;
 import me.jellysquid.mods.radon.common.ChunkDatabaseAccess;
 import me.jellysquid.mods.radon.common.db.LMDBInstance;
 import me.jellysquid.mods.radon.common.db.spec.impl.WorldDatabaseSpecs;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.FeatureUpdater;
 import net.minecraft.world.storage.StorageIoWorker;
@@ -17,6 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 @SuppressWarnings("OverwriteAuthorRequired")
 @Mixin(VersionedChunkStorage.class)
@@ -33,7 +34,7 @@ public class MixinVersionedChunkStorage implements ChunkDatabaseAccess {
     private LMDBInstance storage;
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    private void reinit(File file, DataFixer dataFixer, boolean bl, CallbackInfo ci) {
+    private void reinit(Path directory, DataFixer dataFixer, boolean dsync, CallbackInfo ci) {
         try {
             this.worker.close();
         } catch (IOException e) {
@@ -44,13 +45,13 @@ public class MixinVersionedChunkStorage implements ChunkDatabaseAccess {
     }
 
     @Overwrite
-    public @Nullable CompoundTag getNbt(ChunkPos chunkPos) {
+    public @Nullable NbtCompound getNbt(ChunkPos chunkPos) {
         return this.storage.getDatabase(WorldDatabaseSpecs.CHUNK_DATA)
                 .getValue(chunkPos);
     }
 
     @Overwrite
-    public void setTagAt(ChunkPos chunkPos, CompoundTag compoundTag) {
+    public void setNbt(ChunkPos chunkPos, NbtCompound compoundTag) {
         this.storage
                 .getTransaction(WorldDatabaseSpecs.CHUNK_DATA)
                 .add(chunkPos, compoundTag);

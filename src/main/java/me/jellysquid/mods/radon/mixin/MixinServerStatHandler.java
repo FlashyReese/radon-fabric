@@ -10,7 +10,7 @@ import me.jellysquid.mods.radon.common.db.spec.impl.PlayerDatabaseSpecs;
 import me.jellysquid.mods.radon.common.db.DatabaseItem;
 import me.jellysquid.mods.radon.common.db.LMDBInstance;
 import net.minecraft.datafixer.DataFixTypes;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.stat.ServerStatHandler;
@@ -50,7 +50,7 @@ public abstract class MixinServerStatHandler extends StatHandler implements Data
     protected abstract <T> Optional<Stat<T>> createStat(StatType<T> type, String id);
 
     @Shadow
-    private static CompoundTag jsonToCompound(JsonObject jsonObject) {
+    private static NbtCompound jsonToCompound(JsonObject jsonObject) {
         throw new UnsupportedOperationException();
     }
 
@@ -113,7 +113,7 @@ public abstract class MixinServerStatHandler extends StatHandler implements Data
                 return;
             }
 
-            CompoundTag tag = jsonToCompound(jsonElement.getAsJsonObject());
+            NbtCompound tag = jsonToCompound(jsonElement.getAsJsonObject());
 
             if (!tag.contains("DataVersion", 99)) {
                 tag.putInt("DataVersion", 1343);
@@ -125,7 +125,7 @@ public abstract class MixinServerStatHandler extends StatHandler implements Data
                 return;
             }
 
-            CompoundTag stats = tag.getCompound("stats");
+            NbtCompound stats = tag.getCompound("stats");
 
             for (String string : stats.getKeys()) {
                 if (!stats.contains(string, 10)) {
@@ -133,7 +133,7 @@ public abstract class MixinServerStatHandler extends StatHandler implements Data
                 }
 
                 Util.ifPresentOrElse(Registry.STAT_TYPE.getOrEmpty(new Identifier(string)), (statType) -> {
-                    CompoundTag compoundTag2x = stats.getCompound(string);
+                    NbtCompound compoundTag2x = stats.getCompound(string);
 
                     for (String string2 : compoundTag2x.getKeys()) {
                         if (!compoundTag2x.contains(string2, 99)) {

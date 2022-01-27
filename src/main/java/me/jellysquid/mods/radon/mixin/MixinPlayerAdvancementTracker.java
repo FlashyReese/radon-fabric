@@ -50,7 +50,7 @@ public abstract class MixinPlayerAdvancementTracker implements DatabaseItem {
 
     @Shadow @Final private static TypeToken<Map<Identifier, AdvancementProgress>> JSON_TYPE;
 
-    @Shadow @Final private DataFixer field_25324;
+    @Shadow @Final private DataFixer dataFixer;
 
     @Shadow protected abstract void initProgress(Advancement advancement, AdvancementProgress progress);
 
@@ -84,7 +84,7 @@ public abstract class MixinPlayerAdvancementTracker implements DatabaseItem {
                     dynamic = dynamic.set("DataVersion", dynamic.createInt(1343));
                 }
 
-                dynamic = this.field_25324.update(DataFixTypes.ADVANCEMENTS.getTypeReference(), dynamic, dynamic.get("DataVersion").asInt(0), SharedConstants.getGameVersion().getWorldVersion());
+                dynamic = this.dataFixer.update(DataFixTypes.ADVANCEMENTS.getTypeReference(), dynamic, dynamic.get("DataVersion").asInt(0), SharedConstants.getGameVersion().getWorldVersion());
                 dynamic = dynamic.remove("DataVersion");
 
                 Map<Identifier, AdvancementProgress> map = GSON.getAdapter(JSON_TYPE)
@@ -154,7 +154,7 @@ public abstract class MixinPlayerAdvancementTracker implements DatabaseItem {
     public void setStorage(LMDBInstance storage) {
         this.storage = storage;
 
-        this.load(this.owner.getServerWorld().getServer().getAdvancementLoader());
+        this.load(this.owner.getWorld().getServer().getAdvancementLoader());
     }
 
     @Override

@@ -10,8 +10,8 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.server.world.ThreadedAnvilChunkStorage;
 import net.minecraft.structure.StructureManager;
 import net.minecraft.util.thread.ThreadExecutor;
-import net.minecraft.world.PersistentStateManager;
 import net.minecraft.world.chunk.ChunkProvider;
+import net.minecraft.world.chunk.ChunkStatusChangeListener;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.level.storage.LevelStorage;
 import net.minecraft.world.poi.PointOfInterestStorage;
@@ -35,8 +35,8 @@ public class MixinThreadedAnvilChunkStorage {
     private LMDBInstance storage;
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    private void reinit(ServerWorld serverWorld, LevelStorage.Session session, DataFixer dataFixer, StructureManager structureManager, Executor workerExecutor, ThreadExecutor<Runnable> mainThreadExecutor, ChunkProvider chunkProvider, ChunkGenerator chunkGenerator, WorldGenerationProgressListener worldGenerationProgressListener, Supplier<PersistentStateManager> supplier, int i, boolean bl, CallbackInfo ci) {
-        this.storage = new LMDBInstance(session.getWorldDirectory(serverWorld.getRegistryKey()), "chunks", new DatabaseSpec[] {
+    private void reinit(ServerWorld world, LevelStorage.Session session, DataFixer dataFixer, StructureManager structureManager, Executor executor, ThreadExecutor mainThreadExecutor, ChunkProvider chunkProvider, ChunkGenerator chunkGenerator, WorldGenerationProgressListener worldGenerationProgressListener, ChunkStatusChangeListener chunkStatusChangeListener, Supplier persistentStateManagerFactory, int viewDistance, boolean dsync, CallbackInfo ci) {
+        this.storage = new LMDBInstance(session.getWorldDirectory(world.getRegistryKey()).toFile(), "chunks", new DatabaseSpec[] {
                 WorldDatabaseSpecs.CHUNK_DATA,
                 WorldDatabaseSpecs.POI
         });

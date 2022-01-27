@@ -6,7 +6,7 @@ import me.jellysquid.mods.radon.common.db.DatabaseItem;
 import me.jellysquid.mods.radon.common.db.LMDBInstance;
 import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.world.WorldSaveHandler;
 import org.apache.logging.log4j.Logger;
@@ -39,7 +39,7 @@ public class MixinWorldSaveHandler implements DatabaseItem {
         try {
             this.storage
                     .getTransaction(PlayerDatabaseSpecs.PLAYER_DATA)
-                    .add(playerEntity.getUuid(), playerEntity.toTag(new CompoundTag()));
+                    .add(playerEntity.getUuid(), playerEntity.writeNbt(new NbtCompound()));
         } catch (Exception e) {
             LOGGER.warn("Failed to save player data for {}", playerEntity.getName().getString());
         }
@@ -47,8 +47,8 @@ public class MixinWorldSaveHandler implements DatabaseItem {
 
     @Overwrite
     @Nullable
-    public CompoundTag loadPlayerData(PlayerEntity playerEntity) {
-        CompoundTag compoundTag = null;
+    public NbtCompound loadPlayerData(PlayerEntity playerEntity) {
+        NbtCompound compoundTag = null;
 
         try {
             compoundTag = this.storage
@@ -60,7 +60,7 @@ public class MixinWorldSaveHandler implements DatabaseItem {
 
         if (compoundTag != null) {
             int i = compoundTag.contains("DataVersion", 3) ? compoundTag.getInt("DataVersion") : -1;
-            playerEntity.fromTag(NbtHelper.update(this.dataFixer, DataFixTypes.PLAYER, compoundTag, i));
+            playerEntity.saveNbt(NbtHelper.update(this.dataFixer, DataFixTypes.PLAYER, compoundTag, i));
         }
 
         return compoundTag;
