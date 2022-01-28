@@ -1,9 +1,9 @@
-name: release-artifacts
+name: Publish Release
 
 on:
   release:
-     types:
-       - published
+    types:
+      - published
 
 jobs:
   build:
@@ -15,10 +15,14 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 17
-      - name: Build artifacts
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Upload assets to GitHub
         run: ./gradlew build
+        env:
+          BUILD_RELEASE: ${{ github.event.prerelease == false }}
       - name: Upload assets to GitHub
         uses: AButler/upload-release-assets@v2.0
         with:
-          files: 'build/libs/*;LICENSE'
+          files: 'build/libs/*;LICENSE.txt'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
