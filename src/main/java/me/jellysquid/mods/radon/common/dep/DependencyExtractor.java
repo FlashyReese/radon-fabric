@@ -37,16 +37,11 @@ public class DependencyExtractor {
     }
 
     private static String getPlatformClassifier() {
-        switch (Platform.get()) {
-            case WINDOWS:
-                return "natives-windows";
-            case MACOSX:
-                return "natives-macos";
-            case LINUX:
-                return "natives-linux";
-            default:
-                throw new IllegalStateException("Platform not supported");
-        }
+        return switch (Platform.get()) {
+            case WINDOWS -> "natives-windows";
+            case MACOSX -> "natives-macos";
+            case LINUX -> "natives-linux";
+        };
     }
 
     public static Path installDependency(String path, MavenIdentifier identifier) {

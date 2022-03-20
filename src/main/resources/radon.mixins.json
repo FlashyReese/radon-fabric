@@ -9,7 +9,6 @@
     "MixinPlayerManager",
     "MixinSerializingRegionBasedStorage",
     "MixinServerStatHandler",
-    "MixinServerWorld",
     "MixinThreadedAnvilChunkStorage",
     "MixinVersionedChunkStorage",
     "MixinWorldSaveHandler"

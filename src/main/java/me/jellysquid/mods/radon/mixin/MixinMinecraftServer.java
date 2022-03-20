@@ -13,7 +13,8 @@ import java.util.function.BooleanSupplier;
 
 @Mixin(MinecraftServer.class)
 public class MixinMinecraftServer {
-    @Shadow private PlayerManager playerManager;
+    @Shadow
+    private PlayerManager playerManager;
 
     @Inject(method = "tick", at = @At(value = "RETURN"))
     private void postTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {

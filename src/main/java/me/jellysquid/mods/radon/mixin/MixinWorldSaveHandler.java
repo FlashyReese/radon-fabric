@@ -9,8 +9,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.world.WorldSaveHandler;
-import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -23,10 +23,10 @@ import java.io.File;
 @SuppressWarnings("OverwriteAuthorRequired")
 @Mixin(WorldSaveHandler.class)
 public class MixinWorldSaveHandler implements DatabaseItem {
-    @Shadow @Final private static Logger LOGGER;
 
     @Shadow @Final protected DataFixer dataFixer;
 
+    @Shadow @Final private static Logger LOGGER;
     private LMDBInstance storage;
 
     @Redirect(method = "<init>", at = @At(value = "INVOKE", target = "Ljava/io/File;mkdirs()Z"))

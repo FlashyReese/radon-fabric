@@ -20,7 +20,7 @@ import net.minecraft.stat.StatType;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 import net.minecraft.util.registry.Registry;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -37,17 +37,16 @@ import java.util.UUID;
 @SuppressWarnings("OverwriteAuthorRequired")
 @Mixin(ServerStatHandler.class)
 public abstract class MixinServerStatHandler extends StatHandler implements DatabaseItem {
-    private LMDBInstance storage;
-
-    @Shadow
-    protected abstract String asString();
-
     @Shadow
     @Final
     private static Logger LOGGER;
-
+    private LMDBInstance storage;
     @Shadow
-    protected abstract <T> Optional<Stat<T>> createStat(StatType<T> type, String id);
+    @Final
+    private File file;
+    @Shadow
+    @Final
+    private MinecraftServer server;
 
     @Shadow
     private static NbtCompound jsonToCompound(JsonObject jsonObject) {
@@ -55,12 +54,10 @@ public abstract class MixinServerStatHandler extends StatHandler implements Data
     }
 
     @Shadow
-    @Final
-    private File file;
+    protected abstract String asString();
 
     @Shadow
-    @Final
-    private MinecraftServer server;
+    protected abstract <T> Optional<Stat<T>> createStat(StatType<T> type, String id);
 
     @Redirect(method = "<init>", at = @At(value = "INVOKE", target = "Ljava/io/File;isFile()Z"))
     public boolean redirectDisableFileLoad(File file) {
@@ -141,9 +138,7 @@ public abstract class MixinServerStatHandler extends StatHandler implements Data
                             continue;
                         }
 
-                        Util.ifPresentOrElse(this.createStat(statType, string2), (stat) -> {
-                            this.statMap.put(stat, compoundTag2x.getInt(string2));
-                        }, () -> LOGGER.warn("Invalid statistic on player {}: Don't know what {} is", this.getUuid(), string2));
+                        Util.ifPresentOrElse(this.createStat(statType, string2), (stat) -> this.statMap.put(stat, compoundTag2x.getInt(string2)), () -> LOGGER.warn("Invalid statistic on player {}: Don't know what {} is", this.getUuid(), string2));
                     }
                 }, () -> LOGGER.warn("Invalid statistic type on player {}: Don't know what {} is", this.getUuid(), string));
             }

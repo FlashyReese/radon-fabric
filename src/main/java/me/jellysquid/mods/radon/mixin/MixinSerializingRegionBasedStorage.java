@@ -1,6 +1,7 @@
 package me.jellysquid.mods.radon.mixin;
 
 import com.mojang.datafixers.DataFixer;
+import com.mojang.serialization.Codec;
 import me.jellysquid.mods.radon.common.ChunkDatabaseAccess;
 import me.jellysquid.mods.radon.common.db.LMDBInstance;
 import me.jellysquid.mods.radon.common.db.spec.impl.WorldDatabaseSpecs;
@@ -27,12 +28,14 @@ import java.util.function.Function;
 @Mixin(SerializingRegionBasedStorage.class)
 public class MixinSerializingRegionBasedStorage<R> implements ChunkDatabaseAccess {
     @Mutable
-    @Shadow @Final private StorageIoWorker worker;
+    @Shadow
+    @Final
+    private StorageIoWorker worker;
 
     private LMDBInstance storage;
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    private void reinit(Path path, Function codecFactory, Function factory, DataFixer dataFixer, DataFixTypes dataFixTypes, boolean dsync, HeightLimitView world, CallbackInfo ci) {
+    private void reinit(Path path, Function<Runnable, Codec<R>> codecFactory, Function<Runnable, R> factory, DataFixer dataFixer, DataFixTypes dataFixTypes, boolean dsync, HeightLimitView world, CallbackInfo ci) {
         try {
             this.worker.close();
         } catch (IOException e) {
