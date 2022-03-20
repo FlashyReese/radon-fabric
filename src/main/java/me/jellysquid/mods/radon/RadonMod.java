@@ -7,6 +7,7 @@ import net.fabricmc.loader.api.FabricLoader;
 public class RadonMod implements ModInitializer {
     @Override
     public void onInitialize() {
+        System.loadLibrary("libzstd"); // Bad
         if (!FabricLoader.getInstance().isDevelopmentEnvironment()) {
             loadNatives();
         }
