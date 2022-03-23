@@ -2,10 +2,8 @@ package me.jellysquid.mods.radon.common.natives;
 
 import jdk.incubator.foreign.MemoryAddress;
 import jdk.incubator.foreign.MemorySegment;
-import org.jetbrains.annotations.Range;
 
 import java.lang.invoke.MethodHandle;
-import java.nio.ByteBuffer;
 
 public class Zstd {
     private static final MethodHandle ZSTD_compressBound = NativeUtil.getHandle(
@@ -39,24 +37,21 @@ public class Zstd {
             Type.UINT
     );
 
-    public static int ZSTD_compressBound(@Range(from = 0, to = Integer.MAX_VALUE) int maxSrc) {
+    public static int ZSTD_compressBound(long maxSrc) {
         try {
-            return (int)ZSTD_compressBound.invokeExact(maxSrc);
+            return (int)ZSTD_compressBound.invokeExact(NativeUtil.Long2Uint(maxSrc));
         } catch (Throwable t) {
             throw new RuntimeException("Exception in Zstd", t);
         }
     }
 
-    public static int ZSTD_compress(ByteBuffer dst, ByteBuffer src, int level) {
+    public static int ZSTD_compress(MemorySegment dst, MemorySegment src, int level) {
         try {
-            var dstSegment = MemorySegment.ofByteBuffer(dst);
-            var srcSegment = MemorySegment.ofByteBuffer(src);
-
             return (int)ZSTD_compress.invokeExact(
-                    dstSegment.address(),
-                    (int)dstSegment.byteSize(),
-                    srcSegment.address(),
-                    (int)srcSegment.byteSize(),
+                    dst.address(),
+                    NativeUtil.Long2Uint(dst.byteSize()),
+                    src.address(),
+                    NativeUtil.Long2Uint(src.byteSize()),
                     level
             );
         } catch (Throwable t) {
@@ -64,29 +59,24 @@ public class Zstd {
         }
     }
 
-    public static int ZSTD_decompress(ByteBuffer dst, ByteBuffer src) {
+    public static int ZSTD_decompress(MemorySegment dst, MemorySegment src) {
         try {
-            var dstSegment = MemorySegment.ofByteBuffer(dst);
-            var srcSegment = MemorySegment.ofByteBuffer(src);
-
             return (int)ZSTD_decompress.invokeExact(
-                    dstSegment.address(),
-                    (int)dstSegment.byteSize(),
-                    srcSegment.address(),
-                    (int)srcSegment.byteSize()
+                    dst.address(),
+                    (int)dst.byteSize(),
+                    src.address(),
+                    (int)src.byteSize()
             );
         } catch (Throwable t) {
             throw new RuntimeException("Exception in Zstd", t);
         }
     }
 
-    public static long ZSTD_getFrameContentSize(ByteBuffer src) {
+    public static long ZSTD_getFrameContentSize(MemorySegment src) {
         try {
-            var srcSegment = MemorySegment.ofByteBuffer(src);
-
             return (long)ZSTD_getFrameContentSize.invokeExact(
-                    srcSegment.address(),
-                    (int)srcSegment.byteSize()
+                    src.address(),
+                    (int)src.byteSize()
             );
         } catch (Throwable t) {
             throw new RuntimeException("Exception in Zstd", t);

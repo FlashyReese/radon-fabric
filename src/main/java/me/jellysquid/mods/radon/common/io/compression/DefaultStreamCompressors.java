@@ -1,16 +1,16 @@
 package me.jellysquid.mods.radon.common.io.compression;
 
-import java.nio.ByteBuffer;
+import jdk.incubator.foreign.MemorySegment;
 
 public class DefaultStreamCompressors {
     public static final StreamCompressor NONE = new StreamCompressor() {
         @Override
-        public ByteBuffer compress(ByteBuffer in) {
+        public MemorySegment compress(MemorySegment in) {
             return in;
         }
 
         @Override
-        public ByteBuffer decompress(ByteBuffer in) {
+        public MemorySegment decompress(MemorySegment in) {
             return in;
         }
     };

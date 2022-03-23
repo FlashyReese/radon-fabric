@@ -1,5 +1,6 @@
 package me.jellysquid.mods.radon.common.db.serializer.val;
 
+import jdk.incubator.foreign.MemorySegment;
 import me.jellysquid.mods.radon.common.db.serializer.ValueSerializer;
 import me.jellysquid.mods.radon.common.io.ByteBufferInputStream;
 import me.jellysquid.mods.radon.common.io.ByteBufferOutputStream;
@@ -11,7 +12,7 @@ import java.nio.ByteBuffer;
 
 public class CompoundTagSerializer implements ValueSerializer<NbtCompound> {
     @Override
-    public ByteBuffer serialize(NbtCompound value) throws IOException {
+    public MemorySegment serialize(NbtCompound value) throws IOException {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream(2048);
 
         try (DataOutputStream out = new DataOutputStream(bytes)) {
@@ -24,12 +25,12 @@ public class CompoundTagSerializer implements ValueSerializer<NbtCompound> {
         bytes.writeTo(new ByteBufferOutputStream(buf));
         buf.flip();
 
-        return buf;
+        return MemorySegment.ofByteBuffer(buf);
     }
 
     @Override
-    public NbtCompound deserialize(ByteBuffer input) throws IOException {
-        try (DataInputStream dataInput = new DataInputStream(new ByteBufferInputStream(input))) {
+    public NbtCompound deserialize(MemorySegment input) throws IOException {
+        try (DataInputStream dataInput = new DataInputStream(new ByteBufferInputStream(input.asByteBuffer()))) {
             return NbtIo.read(dataInput);
         }
     }

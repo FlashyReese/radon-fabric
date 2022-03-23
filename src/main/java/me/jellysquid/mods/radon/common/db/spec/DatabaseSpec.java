@@ -1,9 +1,14 @@
 package me.jellysquid.mods.radon.common.db.spec;
 
 import me.jellysquid.mods.radon.common.io.compression.StreamCompressor;
+import me.jellysquid.mods.radon.common.natives.CString;
 
 public class DatabaseSpec<K, V> {
     private final String name;
+    /**
+     * Copy of {@link #name} encoded as a {@link CString} for performance reasons.
+     */
+    private final CString cName;
 
     private final Class<K> key;
     private final Class<V> value;
@@ -13,10 +18,18 @@ public class DatabaseSpec<K, V> {
 
     public DatabaseSpec(String name, Class<K> key, Class<V> value, StreamCompressor compressor, int initialSize) {
         this.name = name;
+        this.cName = new CString(name);
         this.key = key;
         this.value = value;
         this.compressor = compressor;
         this.initialSize = initialSize;
+    }
+
+    /**
+     * @return this database's name as a C like null terminated string
+     */
+    public CString getNameAsCString() {
+        return this.cName;
     }
 
     public Class<K> getKeyType() {

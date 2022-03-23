@@ -1,19 +1,29 @@
 package me.jellysquid.mods.radon.common.db.serializer.key;
 
+import jdk.incubator.foreign.MemoryLayout;
+import jdk.incubator.foreign.MemoryLayouts;
+import jdk.incubator.foreign.MemorySegment;
 import me.jellysquid.mods.radon.common.db.serializer.KeySerializer;
+import me.jellysquid.mods.radon.common.natives.NativeUtil;
 
-import java.nio.ByteBuffer;
+import java.lang.invoke.VarHandle;
 import java.util.UUID;
 
 public class UUIDSerializer implements KeySerializer<UUID> {
-    @Override
-    public void serializeKey(ByteBuffer buf, UUID value) {
-        buf.putLong(0, value.getLeastSignificantBits());
-        buf.putLong(8, value.getMostSignificantBits());
-    }
+    private static final MemoryLayout LAYOUT = MemoryLayout.structLayout(
+            MemoryLayouts.JAVA_LONG.withName("least"),
+            MemoryLayouts.JAVA_LONG.withName("most")
+    );
+    private static final VarHandle LEAST = LAYOUT.varHandle(long.class, MemoryLayout.PathElement.groupElement("least"));
+    private static final VarHandle MOST = LAYOUT.varHandle(long.class, MemoryLayout.PathElement.groupElement("most"));
 
     @Override
-    public int getKeyLength() {
-        return Long.BYTES * 2;
+    public MemorySegment serializeKey(UUID value) {
+        var segment = NativeUtil.allocateNative(LAYOUT);
+
+        LEAST.set(segment, value.getLeastSignificantBits());
+        MOST.set(segment, value.getMostSignificantBits());
+
+        return segment;
     }
 }

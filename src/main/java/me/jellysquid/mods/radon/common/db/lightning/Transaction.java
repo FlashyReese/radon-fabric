@@ -1,9 +1,9 @@
 package me.jellysquid.mods.radon.common.db.lightning;
 
-import org.lwjgl.system.MemoryStack;
+import jdk.incubator.foreign.MemoryAddress;
+import me.jellysquid.mods.radon.common.natives.NativeUtil;
 
 @FunctionalInterface
 interface Transaction<T> {
-    T exec(MemoryStack stack, long txn);
-
+    T exec(NativeUtil.PointerBuf stack, MemoryAddress txn);
 }

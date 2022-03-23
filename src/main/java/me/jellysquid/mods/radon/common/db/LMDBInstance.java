@@ -18,7 +18,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class LMDBInstance {
     private static final long MAP_RESIZE_STEP = 16 * 1024 * 1024;
-    private static final Logger LOGGER = LogManager.getLogger("Argon");
+    private static final Logger LOGGER = LogManager.getLogger("Radon");
 
     protected final Env env;
     protected final Reference2ObjectMap<DatabaseSpec<?, ?>, KVDatabase<?, ?>> databases = new Reference2ObjectOpenHashMap<>();
@@ -39,7 +39,7 @@ public class LMDBInstance {
 
         EnvInfo info = this.env.getInfo();
 
-        int initialSize = Arrays.stream(databases).mapToInt(DatabaseSpec::getInitialSize).sum();
+        long initialSize = Arrays.stream(databases).mapToInt(DatabaseSpec::getInitialSize).sum();
 
         if (info.mapSize < initialSize) {
             this.env.setMapSize(initialSize);
@@ -105,7 +105,7 @@ public class LMDBInstance {
 
                         txn.abort();
 
-                        this.growMap(MAP_RESIZE_STEP);
+                        this.growMap((int)MAP_RESIZE_STEP);
 
                         txn = this.env.txnWrite();
                         it = this.transactions.values()
