@@ -12,6 +12,9 @@ import org.apache.logging.log4j.Logger;
 import org.lwjgl.util.lmdb.LMDB;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -26,16 +29,23 @@ public class LMDBInstance {
 
     protected final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
-    public LMDBInstance(File dir, String name, DatabaseSpec<?, ?>[] databases) {
-        if (!dir.isDirectory() && dir.mkdirs()) {
-            throw new RuntimeException("Couldn't create directory: " + dir);
+    public LMDBInstance(Path dir, String name, DatabaseSpec<?, ?>[] databases) {
+        if (!Files.exists(dir)) {
+            try {
+                Files.createDirectories(dir);
+            } catch(IOException ex) {
+                //Crying
+                throw new RuntimeException(ex);
+            }
+        } else if (!Files.isDirectory(dir)) {
+            throw new RuntimeException("Not a directory: " + dir);
         }
 
-        File file = new File(dir, name + ".db");
+        Path path = dir.resolve(name + ".db");
 
         this.env = Env.builder()
                 .setMaxDatabases(databases.length)
-                .open(file, LMDB.MDB_NOLOCK | LMDB.MDB_NOSUBDIR);
+                .open(path, LMDB.MDB_NOLOCK | LMDB.MDB_NOSUBDIR);
 
         EnvInfo info = this.env.getInfo();
 
@@ -64,6 +74,7 @@ public class LMDBInstance {
         return (KVDatabase<K, V>) database;
     }
 
+
     @SuppressWarnings("unchecked")
     public <K, V> KVTransaction<K, V> getTransaction(DatabaseSpec<K, V> spec) {
         KVTransaction<?, ?> transaction = this.transactions.get(spec);
@@ -76,6 +87,10 @@ public class LMDBInstance {
     }
 
     public void flushChanges() {
+        if (this.transactions.isEmpty()) {
+            return;
+        }
+
         this.lock.writeLock()
                 .lock();
 
@@ -91,7 +106,7 @@ public class LMDBInstance {
         Iterator<KVTransaction<?, ?>> it = this.transactions.values()
                 .iterator();
 
-        Txn txn = this.env.txnWrite();
+        Txn txn = this.txnWrite();
 
         try {
             while (it.hasNext()) {
@@ -107,7 +122,7 @@ public class LMDBInstance {
 
                         this.growMap((int)MAP_RESIZE_STEP);
 
-                        txn = this.env.txnWrite();
+                        txn = this.txnWrite();
                         it = this.transactions.values()
                                 .iterator();
                     } else {
@@ -125,6 +140,24 @@ public class LMDBInstance {
 
         this.transactions.values()
                 .forEach(KVTransaction::clear);
+    }
+
+    protected Txn txnWrite() {
+        try {
+            return this.env.txnWrite();
+        } catch(LmdbException ex) {
+            if(ex.getCode() == LMDB.MDB_MAP_RESIZED) {
+                LOGGER.warn("Map allocation was overridden during commit; Requesting " +
+                        "another {} bytes", MAP_RESIZE_STEP);
+
+                this.growMap(MAP_RESIZE_STEP);
+
+                return this.env.txnWrite();
+            }
+            else {
+                throw ex;
+            }
+        }
     }
 
     private void growMap(long size) {

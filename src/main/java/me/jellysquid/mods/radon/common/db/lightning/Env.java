@@ -6,6 +6,7 @@ import me.jellysquid.mods.radon.common.natives.Lmdb;
 import me.jellysquid.mods.radon.common.natives.NativeUtil;
 
 import java.io.File;
+import java.nio.file.Path;
 
 public class Env {
     private final MemoryAddress env;
@@ -80,6 +81,10 @@ public class Env {
 
         public Env open(File file, int flags) {
             return this.open(new CString(file.getAbsolutePath()), flags);
+        }
+
+        public Env open(Path path, int flags) {
+            return this.open(new CString(path.toString()), flags);
         }
 
         public Env open(CString path, int flags) {

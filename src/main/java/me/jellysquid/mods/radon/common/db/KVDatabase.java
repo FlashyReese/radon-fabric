@@ -1,6 +1,7 @@
 package me.jellysquid.mods.radon.common.db;
 
 import jdk.incubator.foreign.MemorySegment;
+import me.jellysquid.mods.radon.common.Scannable;
 import me.jellysquid.mods.radon.common.db.serializer.DefaultSerializers;
 import me.jellysquid.mods.radon.common.db.serializer.KeySerializer;
 import me.jellysquid.mods.radon.common.db.serializer.ValueSerializer;
@@ -35,6 +36,44 @@ public class KVDatabase<K, V> {
         this.keySerializer = DefaultSerializers.getKeySerializer(spec.getKeyType());
         this.valueSerializer = DefaultSerializers.getValueSerializer(spec.getValueType());
         this.compressor = spec.getCompressor();
+    }
+
+    //TODO: Proper checking
+    @SuppressWarnings("unchecked")
+    public <T> void scan(K key, T scanner) {
+        if(!(this.keySerializer instanceof Scannable<?>)) {
+            return;
+        }
+
+        ReentrantReadWriteLock lock = this.storage.getLock();
+        lock.readLock()
+                .lock();
+
+        try {
+            var buf = this.dbi.get(this.env.txnRead(), this.getKeyBuffer(key));
+
+            if (buf == null) {
+                return;
+            }
+
+            MemorySegment decompressed;
+
+            try {
+                //Safe or not?
+                decompressed = this.compressor.decompress(buf);
+            } catch (Exception ex) {
+                throw new RuntimeException("Failed to decompress value", ex);
+            }
+
+            try {
+                ((Scannable<T>) this.valueSerializer).scan(decompressed, scanner);
+            } catch (Exception ex) {
+                throw new RuntimeException("Failed to scan value", ex);
+            }
+        } finally {
+            lock.readLock()
+                    .unlock();
+        }
     }
 
     public V getValue(K key) {

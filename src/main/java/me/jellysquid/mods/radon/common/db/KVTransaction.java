@@ -16,16 +16,18 @@ public class KVTransaction<K, V> {
     }
 
     public void add(K key, V value) {
-        try {
-            var data = this.storage.getValueSerializer()
-                    .serialize(value);
+        synchronized (this.pending) {
+            try {
+                var data = this.storage.getValueSerializer()
+                        .serialize(value);
 
-            var compressedData = this.storage.getCompressor()
-                    .compress(data);
+                var compressedData = this.storage.getCompressor()
+                        .compress(data);
 
-            this.pending.put(key, compressedData);
-        } catch (IOException e) {
-            throw new RuntimeException("Couldn't serialize value", e);
+                this.pending.put(key, compressedData);
+            } catch (IOException e) {
+                throw new RuntimeException("Couldn't serialize value", e);
+            }
         }
     }
 

@@ -60,7 +60,7 @@ public class MixinWorldSaveHandler implements DatabaseItem {
 
         if (compoundTag != null) {
             int i = compoundTag.contains("DataVersion", 3) ? compoundTag.getInt("DataVersion") : -1;
-            playerEntity.saveNbt(NbtHelper.update(this.dataFixer, DataFixTypes.PLAYER, compoundTag, i));
+            playerEntity.readNbt(NbtHelper.update(this.dataFixer, DataFixTypes.PLAYER, compoundTag, i));
         }
 
         return compoundTag;

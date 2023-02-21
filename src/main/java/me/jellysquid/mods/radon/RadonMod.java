@@ -7,7 +7,11 @@ import net.fabricmc.loader.api.FabricLoader;
 public class RadonMod implements ModInitializer {
     @Override
     public void onInitialize() {
-        System.loadLibrary("libzstd"); // Bad
+        // We should bundle natives and load them but for the meanwhile :)
+        // Using FFM API
+        // -Dforeign.restricted=permit --add-modules jdk.incubator.foreign --enable-native-access=ALL-UNNAMED
+        System.loadLibrary("zstd");
+        System.loadLibrary("lmdb");
         if (!FabricLoader.getInstance().isDevelopmentEnvironment()) {
             loadNatives();
         }

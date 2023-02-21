@@ -12,6 +12,7 @@ import me.jellysquid.mods.radon.common.db.LMDBInstance;
 import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.stat.ServerStatHandler;
 import net.minecraft.stat.Stat;
@@ -19,7 +20,6 @@ import net.minecraft.stat.StatHandler;
 import net.minecraft.stat.StatType;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
-import net.minecraft.util.registry.Registry;
 import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -129,7 +129,7 @@ public abstract class MixinServerStatHandler extends StatHandler implements Data
                     continue;
                 }
 
-                Util.ifPresentOrElse(Registry.STAT_TYPE.getOrEmpty(new Identifier(string)), (statType) -> {
+                Util.ifPresentOrElse(Registries.STAT_TYPE.getOrEmpty(new Identifier(string)), (statType) -> {
                     NbtCompound compoundTag2x = stats.getCompound(string);
 
                     for (String string2 : compoundTag2x.getKeys()) {

@@ -18,11 +18,12 @@
       "me.jellysquid.mods.radon.RadonMod"
     ]
   },
+  "accessWidener": "radon.accesswidener",
   "mixins": [
     "radon.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.12.12",
-    "minecraft": "1.18.x"
+    "fabricloader": ">=0.14",
+    "minecraft": "1.19.x"
   }
 }

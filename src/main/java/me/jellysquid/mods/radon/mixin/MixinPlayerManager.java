@@ -7,12 +7,12 @@ import me.jellysquid.mods.radon.common.db.spec.DatabaseSpec;
 import me.jellysquid.mods.radon.common.db.spec.impl.PlayerDatabaseSpecs;
 import net.minecraft.advancement.PlayerAdvancementTracker;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.registry.CombinedDynamicRegistries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.stat.ServerStatHandler;
 import net.minecraft.util.WorldSavePath;
-import net.minecraft.util.registry.DynamicRegistryManager;
 import net.minecraft.world.WorldSaveHandler;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -22,7 +22,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.io.File;
+import java.nio.file.Path;
 
 @Mixin(PlayerManager.class)
 public class MixinPlayerManager implements PlayerDatabaseAccess {
@@ -33,8 +33,8 @@ public class MixinPlayerManager implements PlayerDatabaseAccess {
     private LMDBInstance storage;
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    private void reinit(MinecraftServer server, DynamicRegistryManager.Immutable immutable, WorldSaveHandler worldSaveHandler, int i, CallbackInfo ci) {
-        File dir = server.getSavePath(WorldSavePath.ADVANCEMENTS).getParent().toFile();
+    private void reinit(MinecraftServer server, CombinedDynamicRegistries registryManager, WorldSaveHandler saveHandler, int maxPlayers, CallbackInfo ci) {
+        Path dir = server.getSavePath(WorldSavePath.ADVANCEMENTS).getParent();
 
         this.storage = new LMDBInstance(dir, "players", new DatabaseSpec[] {
                 PlayerDatabaseSpecs.PLAYER_DATA,
